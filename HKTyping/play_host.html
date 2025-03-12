@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百人一首競技タイピング</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="main.css">
+    <style>
+
+        .title{
+            text-align: center;
+            font-size: xx-large;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(0, 163, 109);
+        }
+
+        .hyakunin_font_right{
+            padding: 3px;
+            font-size: x-large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+
+        .btn_de2{
+            width: 90%;
+            height: 2em;
+            font-size: large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(20, 135, 29);
+        }
+
+    </style>
+</head>
+<body>
+    <script src="block.js"></script>
+
+    <div class="title">百人一首競技 タイピング</div>
+    <div id="text01" class="hyakunin_font_right">サーバーへ接続中</div>
+    <div id="grou_mei" class="hyakunin_font">group_name</div>
+    <div id="text02" class="hyakunin_font_right"></div>
+    <div id="user01" class="hyakunin_font"></div>
+    <div id="user02" class="hyakunin_font"></div>
+    <center><div id="k_st_btn" class="hyakunin_font"></div></center>
+    <center><div id="k_st_btn2"></div></center>
+    
+    <script src="data.js"></script>
+    
+    <script>
+
+        //問題用見本データ
+        //const data = ["日本語が大好きです．","今日の天気は雨でしょう","マジでムズイ","nihongo"];
+
+        data_num = data.length;
+        
+        function next(){
+            mon_num = Math.floor(Math.random()*(data_num-0)+0);
+            return mon_num;
+        }
+
+        var id = location.search.substr(1);
+        var group_name = id;
+
+        var user_num = 1;
+
+        var user_01;
+        var user_02;
+
+        var use_01_tokuten = 0;
+        var use_02_tokuten = 0;
+
+        var mondai_suu = 0;
+
+        //出題する問題の数
+        var syutudai_su = 10;
+
+        var ws = new WebSocket('wss://cloud.achex.ca/karuta_net');
+
+        document.getElementById('grou_mei').textContent = "グループ名:"+group_name;
+
+        ws.onopen = function(evt){
+            ws.send('{"auth":"karuta_server","passwd":"karut"}');
+            //alert("接続されました．");
+            document.getElementById('text01').textContent = "サーバーへの接続に成功しました.";
+            document.getElementById('text02').textContent = "対戦ユーザーの接続を待っています...";
+            text_set00 = '{"joinHub":"'+group_name+'"}';
+            ws.send(text_set00);
+        };
+
+        ws.onmessage = function(evt){
+            //alert("メッセージを受信しました.");
+            var recieved_message = evt.data;
+            //alert(recieved_message);
+            if(JSON.parse(recieved_message).auth!="OK"){
+                if(JSON.parse(recieved_message).mes=="connect"){
+                    if(user_num==1){
+                        document.getElementById('user01').textContent = "ユーザー1:" + JSON.parse(recieved_message).FROM;
+                        user_01 = JSON.parse(recieved_message).FROM;
+                        user_num++;
+                    }else if(user_num==2){
+                        document.getElementById('user02').textContent = "ユーザー2:" + JSON.parse(recieved_message).FROM;
+                        user_02 = JSON.parse(recieved_message).FROM;
+                        user_num++;
+                        document.getElementById('text02').textContent = "対戦ユーザーの登録が完了しました．";
+                        document.getElementById('k_st_btn').innerHTML = '<button onclick="game_st();" class="btn_de2">開始</button>';
+                        us_mes00 = '{"toH":"'+group_name+'","mes":"find"}';
+                        ws.send(us_mes00);                
+                    }
+                }else if(JSON.parse(recieved_message).dat=="ans"){
+                    if(JSON.parse(recieved_message).mes=="correct"){
+                        if(JSON.parse(recieved_message).FROM==user_01){
+                            use_01_tokuten++;
+                            us_mes00 = '{"to":"'+user_01+'","mes":"you_c","count":"'+use_01_tokuten+'"}';
+                            //alert(us_mes00);
+                            ws.send(us_mes00);     
+                        }else if(JSON.parse(recieved_message).FROM==user_02){
+                            use_02_tokuten++;
+                            us_mes00 = '{"to":"'+user_02+'","mes":"you_c","count":"'+use_02_tokuten+'"}';
+                            //alert(us_mes00);
+                            ws.send(us_mes00);   
+                        }
+                    }
+                    mondai();
+                }
+            }
+        };
+
+        function game_stop(){
+            us_mes00 = '{"toH":"'+group_name+'","mes":"exit"}';
+            ws.send(us_mes00);  
+            window.location.replace("play_game.html");
+        }
+
+        function mondai(){
+            if(mondai_suu<syutudai_su){
+                var mon_n=next();
+                us_mes00 = '{"toH":"'+group_name+'","mes":"'+data[mon_n]+'","dat":"qu"}';
+                ws.send(us_mes00);
+                mondai_suu++; 
+            }else{
+                document.getElementById('k_st_btn').innerHTML = "ゲームが終了しました.";
+
+                us_mes01 = '{"to":"'+user_01+'","mes":"finish","use01_count":"'+use_01_tokuten+'","use02_count":"'+use_02_tokuten+'"}';
+                us_mes02 = '{"to":"'+user_02+'","mes":"finish","use01_count":"'+use_02_tokuten+'","use02_count":"'+use_01_tokuten+'"}';
+                ws.send(us_mes01); 
+                ws.send(us_mes02);  
+                document.getElementById('k_st_btn2').innerHTML = '<button onclick="game_stop();" class="btn_de2">終了</button>'; 
+            }
+        }
+
+        function game_st(){
+            const st01 = new Audio("tap01.mp3");
+            st01.play();
+            game_st_mes00 = '{"toH":"'+group_name+'","mes":"game_st"}';
+            ws.send(game_st_mes00);
+            //alert("送信しました.");
+            document.getElementById('k_st_btn').innerHTML = "ゲームをスタートしました.";
+            setTimeout(mondai,5000);
+        }
+
+    </script>
+
+</body>
+</html>

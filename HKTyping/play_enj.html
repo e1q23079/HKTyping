@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百人一首競技タイピング</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="main.css">
+    <style>
+        
+        .title{
+            text-align: center;
+            font-size: xx-large;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(0, 163, 109);
+        }
+
+        .hyakunin_font_right{
+            padding: 3px;
+            font-size: x-large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+
+        .btn_de2{
+            width: 90%;
+            height: 2em;
+            font-size: large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(20, 135, 29);
+        }
+
+        .input_box{
+            text-align: center;
+            font-size: xx-large;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(20, 135, 29);
+            width: 70%;
+        }
+
+        .hyakunin_font_text{
+            padding: 3px;
+            text-align: center;
+            font-size: xx-large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            background-color: rgb(6, 87, 13);
+            color: aliceblue;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio src="bgm_main.mp3" autoplay loop id="bgm"></audio>
+    
+    <script src="block.js"></script>
+    
+    <div class="title">百人一首競技 タイピング</div>
+    <div id="text01" class="hyakunin_font_right">サーバーへ接続中</div>
+    <div id="grou_mei" class="hyakunin_font">group_name</div>
+    <div id="us_nam" class="hyakunin_font">user_name</div>
+    <div id="text02" class="hyakunin_font"></div>
+    <div id="mon" class="hyakunin_font_text" onmousedown="return false;"></div>
+    <div id="inp_text" class="hyakunin_font"></div>
+    <center><div id="inp_t"></div></center>
+    <div id="you_count" class="hyakunin_font"></div>
+    
+    <script>
+
+        document.getElementById('bgm').volume=0.2;
+        
+        var id = location.search.substr(1);
+        var group_name = id;
+
+        var first = true;
+
+        var ws = new WebSocket('wss://cloud.achex.ca/karuta_net');
+
+        document.getElementById('grou_mei').textContent = "グループ名:"+group_name;
+
+        user_name = window.prompt("ユーザー名を入力してください."); 
+
+        document.getElementById('us_nam').textContent = "ユーザー名:"+user_name;
+
+        var mondai_txt;
+
+        var finish_flag = false;
+
+        ws.onopen = function(evt){
+            //パスワード:ogura_hund
+            text_set01 = '{"auth":"'+user_name+'","password":"karut"}';
+            ws.send(text_set01);
+            //alert("接続されました．");
+            document.getElementById('text01').textContent = "サーバーへの接続に成功しました.";
+            document.getElementById('text02').textContent = "対戦相手を探しています．";
+            text_set00 = '{"joinHub":"'+group_name+'"}';
+            ws.send(text_set00);
+            game_st_mes55 = '{"toH":"'+group_name+'","mes":"connect"}';
+            ws.send(game_st_mes55);
+        };
+
+        ws.onmessage = function(evt){
+            //alert("メッセージを受信しました.");
+            var recieved_message = evt.data;
+            //alert(recieved_message);
+            if(JSON.parse(recieved_message).auth!="OK"){
+                if(JSON.parse(recieved_message).mes=="find"){
+                    document.getElementById('text02').textContent = "対戦相手が見つかりました．";
+                }else if(JSON.parse(recieved_message).mes=="game_st"){
+                    //alert("ゲーム開始");
+                    document.getElementById('text01').textContent = "";
+                    document.getElementById('text02').textContent = "まもなくゲームが開始します．";
+                    document.getElementById('you_count').textContent = "スコア：0";
+
+                }else if(JSON.parse(recieved_message).dat=="qu"){
+                    if(first){
+                        document.getElementById('inp_t').innerHTML = '<input type="text" id="inp" class="input_box" onkeypress="inp_check();" onkeyup="inp_do();" onblur="not_form();" autofocus/>';
+                        first = false;   
+                    }
+
+                    next();
+                    
+                    const st04 = new Audio("start.mp3");
+                    st04.play();
+
+                    document.getElementById('text02').textContent = "ゲームを開始しました．";
+                    document.getElementById('mon').textContent = JSON.parse(recieved_message).mes;
+                    
+                    document.getElementById('inp_text').textContent = "入力> "
+                    mondai_txt = JSON.parse(recieved_message).mes
+                }else if(JSON.parse(recieved_message).mes=="you_c"){
+                    document.getElementById('you_count').textContent = "スコア：" + JSON.parse(recieved_message).count;
+                }else if(JSON.parse(recieved_message).mes=="finish"){
+                    finish_flag = true;
+                    document.getElementById('mon').textContent = "";
+                    document.getElementById('inp_text').textContent = "";
+                    document.getElementById('inp_t').innerHTML = "";
+
+                    const st02 = new Audio("finish.mp3");
+                    st02.play();
+
+                    document.getElementById('text02').textContent = "フィニッシュ！！";
+                    u1_tokuten = JSON.parse(recieved_message).use01_count;
+                    u2_tokuten = JSON.parse(recieved_message).use02_count;
+                    const kekka = ["あなたの勝ちです．","あなたの負けです．","同点です．"];
+                    var kekka_num;
+                    if(u1_tokuten>u2_tokuten){
+                        //alert("あなたの勝ち");
+                        kekka_num = 0;
+                    }else if(u1_tokuten<u2_tokuten){
+                        //alert("あなたの負け");
+                        kekka_num = 1;
+                    }else if(u1_tokuten==u2_tokuten){
+                        //alert("同点");
+                        kekka_num = 2;
+                    }
+                    document.getElementById('you_count').textContent = "あなたのスコア:"+u1_tokuten+" 相手のスコア:"+u2_tokuten+" 結果:"+kekka[kekka_num];
+                }else if(JSON.parse(recieved_message).mes=="exit"){
+                    window.location.replace("play_game.html");
+                }
+            }
+        };
+
+        function next(){
+            document.getElementById('inp').value = "";
+        }
+
+        function inp_check(){
+            const st01 = new Audio("ent_oto.mp3");
+            st01.play();
+            if(document.getElementById('inp').value==mondai_txt){
+                next();
+                correct_mes = '{"toH":"'+group_name+'","mes":"correct","dat":"ans"}';
+                ws.send(correct_mes);
+            }
+        }
+
+        function inp_do(){
+            document.getElementById('inp_text').textContent = "入力> "+document.getElementById('inp').value;
+            const st01 = new Audio("key_oto.mp3");
+            st01.play();
+        }
+        function not_form(){
+            if(finish_flag==false){
+                document.getElementById('inp_text').textContent = "フォームが選択されていません.";
+            }
+        }
+        
+    </script>
+</body>
+</html>

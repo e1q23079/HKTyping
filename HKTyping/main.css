@@ -1,0 +1,25 @@
+body{
+    background-color:beige
+}
+
+.btn_st{
+    width: 10em;
+    height: 2em;
+    font-size: xx-large;
+    font-weight: bold;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    color: aliceblue;
+    background-color: rgb(20, 135, 29);
+}
+
+.hyakunin_font{
+    padding: 3px;
+    text-align: center;
+    font-size: x-large;
+    font-weight: bold;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.btn_block{
+    padding: 10px;
+}

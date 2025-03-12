@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百人一首競技タイピング</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="main.css">
+    <style>
+
+        .title{
+            text-align: center;
+            font-size: xx-large;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(0, 163, 109);
+        }
+
+        .input_box{
+            text-align: center;
+            font-size: xx-large;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(20, 135, 29);
+            width: 50%;
+        }
+
+        .btn_de{
+            width: 10em;
+            height: 2em;
+            font-size: large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(20, 135, 29);
+        }
+
+        .btn_block3{
+            text-align: center;
+            padding: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <script src="block.js"></script>
+
+    <div class="title">百人一首競技 タイピング</div>
+    <div class="hyakunin_font" id="text001">グループ名を入力してください.</div>
+    <br>
+    <center><input type="text" class="input_box" id="user_name"/></center>
+    <div class="btn_block3">
+        <button class="btn_de" onclick="kakutei();">確定</button>
+    </div>
+
+    <script>
+        
+        var id = location.search.substr(1);
+        mode = id
+ 
+        const inp = document.getElementById('user_name');
+        
+        function kakutei(){
+            document.getElementById('text001').textContent = "読み込み中"
+            //alert(inp.value);
+            const st01 = new Audio("tap01.mp3");
+            st01.play();
+            st01.addEventListener("ended",(event)=>{
+                if(mode=="host"){
+                    window.location.replace("play_host.html?"+inp.value);
+                }else if(mode=="enj"){
+                    window.location.replace("play_enj.html?"+inp.value);
+                }
+            });
+        }
+        
+    </script>
+
+</body>
+</html>

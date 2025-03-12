@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百人一首競技タイピング</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="main.css">
+    <style>
+        
+        .title{
+            text-align: center;
+            font-size: xx-large;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(0, 163, 109);
+        }
+
+        .btn_de{
+            width: 10em;
+            height: 2em;
+            font-size: large;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: aliceblue;
+            background-color: rgb(20, 135, 29);
+        }
+        .btn_block2{
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <script src="block.js"></script>
+
+    <div class="title">百人一首競技 タイピング</div>
+    <div class="hyakunin_font" id="mes">モードを選択してください.</div>
+    <div class="btn_block2">
+        <button class="btn_de" onclick="start_host();">ホストを開く</button>
+        <button class="btn_de" onclick="start_enj();">参加する</button>
+    </div>
+
+    <script>
+        function start_host(){
+            document.getElementById("mes").innerText = "読み込み中"
+            const st01 = new Audio("tap01.mp3");
+            st01.play();
+            st01.addEventListener("ended",(event)=>{
+                window.location.replace("play_set.html?host");
+            });
+        }
+
+        function start_enj(){
+            document.getElementById("mes").innerText = "読み込み中"
+            const st01 = new Audio("tap01.mp3");
+            st01.play();
+            st01.addEventListener("ended",(event)=>{
+                window.location.replace("play_set.html?enj");
+            });
+        }
+
+    </script>
+    
+</body>
+</html>
